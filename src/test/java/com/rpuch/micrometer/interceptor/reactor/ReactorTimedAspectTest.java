@@ -89,6 +89,36 @@ class ReactorTimedAspectTest {
     }
 
     @Test
+    void invocationEagerExceptionIsTimedViaMono() {
+        assertThatThrownBy(() -> timedServiceProxy.eagerMonoWithError().block())
+                .isEqualTo(exception);
+
+        long timedCount = registry.get("eagerMonoWithError")
+                .tag("class", TimedService.class.getName())
+                .tag("method", "eagerMonoWithError")
+                .tag("extra", "tag")
+                .tag("exception", "RuntimeException")
+                .timer().count();
+
+        assertThat(timedCount).isEqualTo(1);
+    }
+
+    @Test
+    void invocationEagerExceptionIsTimedViaFlux() {
+        assertThatThrownBy(() -> timedServiceProxy.eagerFluxWithError().blockLast())
+                .isEqualTo(exception);
+
+        long timedCount = registry.get("eagerFluxWithError")
+                .tag("class", TimedService.class.getName())
+                .tag("method", "eagerFluxWithError")
+                .tag("extra", "tag")
+                .tag("exception", "RuntimeException")
+                .timer().count();
+
+        assertThat(timedCount).isEqualTo(1);
+    }
+
+    @Test
     void invocationIsTimedViaFlux() {
         timedServiceProxy.lazyFluxWithSuccess().blockLast();
 
@@ -186,6 +216,20 @@ class ReactorTimedAspectTest {
     }
 
     @Test
+    void invocationEagerExceptionIsTimedViaMono_longTask() {
+        assertThatThrownBy(() -> timedServiceProxy.eagerMonoWithErrorLong().block())
+                .isEqualTo(exception);
+
+        long timersCount = registry.get("eagerMonoWithErrorLong")
+                .tag("class", TimedService.class.getName())
+                .tag("method", "eagerMonoWithErrorLong")
+                .tag("extra", "tag")
+                .longTaskTimers().size();
+
+        assertThat(timersCount).isEqualTo(1);
+    }
+
+    @Test
     void invocationIsTimedViaFlux_longTask() {
         timedServiceProxy.lazyFluxWithSuccessLong().blockLast();
 
@@ -206,6 +250,20 @@ class ReactorTimedAspectTest {
         long timersCount = registry.get("lazyFluxWithErrorLong")
                 .tag("class", TimedService.class.getName())
                 .tag("method", "lazyFluxWithErrorLong")
+                .tag("extra", "tag")
+                .longTaskTimers().size();
+
+        assertThat(timersCount).isEqualTo(1);
+    }
+    
+    @Test
+    void invocationEagerExceptionIsTimedViaFlux_longTask() {
+        assertThatThrownBy(() -> timedServiceProxy.eagerFluxWithErrorLong().blockLast())
+                .isEqualTo(exception);
+
+        long timersCount = registry.get("eagerFluxWithErrorLong")
+                .tag("class", TimedService.class.getName())
+                .tag("method", "eagerFluxWithErrorLong")
                 .tag("extra", "tag")
                 .longTaskTimers().size();
 
@@ -254,6 +312,11 @@ class ReactorTimedAspectTest {
             return Flux.defer(() -> Flux.error(exception));
         }
 
+        @Timed(value = "eagerFluxWithError", extraTags = {"extra", "tag"})
+        public Flux<String> eagerFluxWithError() {
+            throw exception;
+        }
+
         @Timed(value = "lazyMonoWithSuccessLong", longTask = true, extraTags = {"extra", "tag"})
         public Mono<String> lazyMonoWithSuccessLong() {
             return Mono.fromCallable(() -> "ok");
@@ -264,6 +327,11 @@ class ReactorTimedAspectTest {
             return Mono.defer(() -> Mono.error(exception));
         }
 
+        @Timed(value = "eagerMonoWithErrorLong", longTask = true, extraTags = {"extra", "tag"})
+        public Mono<String> eagerMonoWithErrorLong() {
+            throw exception;
+        }
+
         @Timed(value = "lazyFluxWithSuccessLong", longTask = true, extraTags = {"extra", "tag"})
         public Flux<String> lazyFluxWithSuccessLong() {
             return Flux.defer(() -> Flux.just("ok"));
@@ -272,6 +340,11 @@ class ReactorTimedAspectTest {
         @Timed(value = "lazyFluxWithErrorLong", longTask = true, extraTags = {"extra", "tag"})
         public Flux<String> lazyFluxWithErrorLong() {
             return Flux.defer(() -> Flux.error(exception));
+        }
+        
+        @Timed(value = "eagerFluxWithErrorLong", longTask = true, extraTags = {"extra", "tag"})
+        public Flux<String> eagerFluxWithErrorLong() {
+            throw exception;
         }
     }
 }
