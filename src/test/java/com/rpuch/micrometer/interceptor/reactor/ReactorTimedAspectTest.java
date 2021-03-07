@@ -102,6 +102,21 @@ class ReactorTimedAspectTest {
     }
 
     @Test
+    void invocationErrorIsTimedViaFlux() {
+        assertThatThrownBy(() -> timedServiceProxy.lazyFluxWithError().blockLast())
+                .isEqualTo(exception);
+
+        long timedCount = registry.get("lazyFluxWithError")
+                .tag("class", TimedService.class.getName())
+                .tag("method", "lazyFluxWithError")
+                .tag("extra", "tag")
+                .tag("exception", "RuntimeException")
+                .timer().count();
+
+        assertThat(timedCount).isEqualTo(1);
+    }
+
+    @Test
     void invocationIsNotTimedViaMonoUntilSubscription() {
         timedServiceProxy.lazyMonoWithSuccess();
 
@@ -157,12 +172,40 @@ class ReactorTimedAspectTest {
     }
 
     @Test
+    void invocationErrorIsTimedViaMono_longTask() {
+        assertThatThrownBy(() -> timedServiceProxy.lazyMonoWithErrorLong().block())
+                .isEqualTo(exception);
+
+        long timersCount = registry.get("lazyMonoWithErrorLong")
+                .tag("class", TimedService.class.getName())
+                .tag("method", "lazyMonoWithErrorLong")
+                .tag("extra", "tag")
+                .longTaskTimers().size();
+
+        assertThat(timersCount).isEqualTo(1);
+    }
+
+    @Test
     void invocationIsTimedViaFlux_longTask() {
         timedServiceProxy.lazyFluxWithSuccessLong().blockLast();
 
         long timersCount = registry.get("lazyFluxWithSuccessLong")
                 .tag("class", TimedService.class.getName())
                 .tag("method", "lazyFluxWithSuccessLong")
+                .tag("extra", "tag")
+                .longTaskTimers().size();
+
+        assertThat(timersCount).isEqualTo(1);
+    }
+    
+    @Test
+    void invocationErrorIsTimedViaFlux_longTask() {
+        assertThatThrownBy(() -> timedServiceProxy.lazyFluxWithErrorLong().blockLast())
+                .isEqualTo(exception);
+
+        long timersCount = registry.get("lazyFluxWithErrorLong")
+                .tag("class", TimedService.class.getName())
+                .tag("method", "lazyFluxWithErrorLong")
                 .tag("extra", "tag")
                 .longTaskTimers().size();
 
@@ -206,7 +249,7 @@ class ReactorTimedAspectTest {
             return Flux.defer(() -> Flux.just("ok"));
         }
 
-        @Timed(value = "lazyFluxWithSuccess", extraTags = {"extra", "tag"})
+        @Timed(value = "lazyFluxWithError", extraTags = {"extra", "tag"})
         public Flux<String> lazyFluxWithError() {
             return Flux.defer(() -> Flux.error(exception));
         }
@@ -226,7 +269,7 @@ class ReactorTimedAspectTest {
             return Flux.defer(() -> Flux.just("ok"));
         }
 
-        @Timed(value = "lazyFluxWithSuccessLong", longTask = true, extraTags = {"extra", "tag"})
+        @Timed(value = "lazyFluxWithErrorLong", longTask = true, extraTags = {"extra", "tag"})
         public Flux<String> lazyFluxWithErrorLong() {
             return Flux.defer(() -> Flux.error(exception));
         }
