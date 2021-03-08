@@ -83,6 +83,7 @@ class ReactorCountedAspectTest {
         double countedCount = registry.get("lazyMonoWithSuccess")
                 .tag("class", CountedService.class.getName())
                 .tag("method", "lazyMonoWithSuccess")
+                .tag("result", "success")
                 .tag("extra", "tag")
                 .counter().count();
 
@@ -97,6 +98,7 @@ class ReactorCountedAspectTest {
         double countedCount = registry.get("lazyMonoWithException")
                 .tag("class", CountedService.class.getName())
                 .tag("method", "lazyMonoWithException")
+                .tag("result", "failure")
                 .tag("extra", "tag")
                 .tag("exception", "RuntimeException")
                 .counter().count();
@@ -112,6 +114,7 @@ class ReactorCountedAspectTest {
         double countedCount = registry.get("eagerMonoWithException")
                 .tag("class", CountedService.class.getName())
                 .tag("method", "eagerMonoWithException")
+                .tag("result", "failure")
                 .tag("extra", "tag")
                 .tag("exception", "RuntimeException")
                 .counter().count();
@@ -135,6 +138,7 @@ class ReactorCountedAspectTest {
         double countedCount = registry.get("eagerFluxWithException")
                 .tag("class", CountedService.class.getName())
                 .tag("method", "eagerFluxWithException")
+                .tag("result", "failure")
                 .tag("extra", "tag")
                 .tag("exception", "RuntimeException")
                 .counter().count();
@@ -157,6 +161,7 @@ class ReactorCountedAspectTest {
         double countedCount = registry.get("lazyFluxWithSuccess")
                 .tag("class", CountedService.class.getName())
                 .tag("method", "lazyFluxWithSuccess")
+                .tag("result", "success")
                 .tag("extra", "tag")
                 .counter().count();
 
@@ -171,6 +176,7 @@ class ReactorCountedAspectTest {
         double countedCount = registry.get("lazyFluxWithException")
                 .tag("class", CountedService.class.getName())
                 .tag("method", "lazyFluxWithException")
+                .tag("result", "failure")
                 .tag("extra", "tag")
                 .tag("exception", "RuntimeException")
                 .counter().count();
@@ -237,6 +243,7 @@ class ReactorCountedAspectTest {
         double invocationCount = registry.get("lazyMonoWithExceptionRecordOnlyFailures")
                 .tag("class", CountedService.class.getName())
                 .tag("method", "lazyMonoWithExceptionRecordOnlyFailures")
+                .tag("result", "failure")
                 .tag("extra", "tag")
                 .counter().count();
 
@@ -251,6 +258,7 @@ class ReactorCountedAspectTest {
         double invocationCount = registry.get("eagerMonoWithExceptionRecordOnlyFailures")
                 .tag("class", CountedService.class.getName())
                 .tag("method", "eagerMonoWithExceptionRecordOnlyFailures")
+                .tag("result", "failure")
                 .tag("extra", "tag")
                 .counter().count();
 
@@ -278,6 +286,7 @@ class ReactorCountedAspectTest {
         double invocationCount = registry.get("lazyFluxWithExceptionRecordOnlyFailures")
                 .tag("class", CountedService.class.getName())
                 .tag("method", "lazyFluxWithExceptionRecordOnlyFailures")
+                .tag("result", "failure")
                 .tag("extra", "tag")
                 .counter().count();
 
@@ -292,6 +301,7 @@ class ReactorCountedAspectTest {
         double invocationCount = registry.get("eagerFluxWithExceptionRecordOnlyFailures")
                 .tag("class", CountedService.class.getName())
                 .tag("method", "eagerFluxWithExceptionRecordOnlyFailures")
+                .tag("result", "failure")
                 .tag("extra", "tag")
                 .counter().count();
 
