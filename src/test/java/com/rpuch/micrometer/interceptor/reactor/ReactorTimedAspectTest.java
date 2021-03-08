@@ -149,29 +149,6 @@ class ReactorTimedAspectTest {
     }
 
     @Test
-    void invocationEagerExceptionIsTimedViaFlux() {
-        assertThatThrownBy(() -> timedServiceProxy.eagerFluxWithException().blockLast())
-                .isEqualTo(exception);
-
-        long timedCount = registry.get("eagerFluxWithException")
-                .tag("class", TimedService.class.getName())
-                .tag("method", "eagerFluxWithException")
-                .tag("extra", "tag")
-                .tag("exception", "RuntimeException")
-                .timer().count();
-
-        assertThat(timedCount).isEqualTo(1);
-    }
-    
-    @Test
-    void invocationEagerErrorIsNotTimedViaFlux() {
-        assertThatThrownBy(() -> timedServiceProxy.eagerFluxWithError().blockLast())
-                .hasCause(error);
-
-        assertThatNoMeterIsCreated();
-    }
-
-    @Test
     void invocationIsTimedViaFlux() {
         timedServiceProxy.lazyFluxWithSuccess().blockLast();
 
@@ -198,7 +175,30 @@ class ReactorTimedAspectTest {
 
         assertThat(timedCount).isEqualTo(1);
     }
-    
+
+    @Test
+    void invocationEagerExceptionIsTimedViaFlux() {
+        assertThatThrownBy(() -> timedServiceProxy.eagerFluxWithException().blockLast())
+                .isEqualTo(exception);
+
+        long timedCount = registry.get("eagerFluxWithException")
+                .tag("class", TimedService.class.getName())
+                .tag("method", "eagerFluxWithException")
+                .tag("extra", "tag")
+                .tag("exception", "RuntimeException")
+                .timer().count();
+
+        assertThat(timedCount).isEqualTo(1);
+    }
+
+    @Test
+    void invocationEagerErrorIsNotTimedViaFlux() {
+        assertThatThrownBy(() -> timedServiceProxy.eagerFluxWithError().blockLast())
+                .hasCause(error);
+
+        assertThatNoMeterIsCreated();
+    }
+
     @Test
     void cancellationIsTimedViaFlux() {
         CancellableSubscriber subscriber = timedServiceProxy.lazyFluxWithSuccess()
@@ -307,6 +307,21 @@ class ReactorTimedAspectTest {
     }
 
     @Test
+    void cancellationIsTimedViaMono_longTask() {
+        CancellableSubscriber subscriber = timedServiceProxy.lazyMonoWithSuccessLong()
+                .subscribeWith(new CancellableSubscriber());
+        subscriber.cancel();
+
+        long timedCount = registry.get("lazyMonoWithSuccessLong")
+                .tag("class", TimedService.class.getName())
+                .tag("method", "lazyMonoWithSuccessLong")
+                .tag("extra", "tag")
+                .longTaskTimers().size();
+
+        assertThat(timedCount).isEqualTo(1);
+    }
+
+    @Test
     void invocationIsTimedViaFlux_longTask() {
         timedServiceProxy.lazyFluxWithSuccessLong().blockLast();
 
@@ -351,6 +366,21 @@ class ReactorTimedAspectTest {
     void invocationEagerErrorIsPassedViaFlux_longTask() {
         assertThatThrownBy(() -> timedServiceProxy.eagerFluxWithErrorLong().blockLast())
                 .hasCause(error);
+    }
+    
+    @Test
+    void cancellationIsTimedViaFlux_longTask() {
+        CancellableSubscriber subscriber = timedServiceProxy.lazyFluxWithSuccessLong()
+                .subscribeWith(new CancellableSubscriber());
+        subscriber.cancel();
+
+        long timedCount = registry.get("lazyFluxWithSuccessLong")
+                .tag("class", TimedService.class.getName())
+                .tag("method", "lazyFluxWithSuccessLong")
+                .tag("extra", "tag")
+                .longTaskTimers().size();
+
+        assertThat(timedCount).isEqualTo(1);
     }
 
     @Test
