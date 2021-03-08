@@ -5,3 +5,55 @@
 
 [Reactor Core](https://github.com/reactor/reactor-core)'s `Mono` and `Flux` support for
 [Micrometer](https://github.com/micrometer-metrics/micrometer) `@Timed` and `@Counted` annotations.
+
+## How to use ##
+
+### Maven ###
+
+```xml
+<dependency>
+  <groupId>com.rpuch.micrometer</groupId>
+  <artifactId>micrometer-reactor</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
+
+### Gradle ###
+
+```
+implementation 'com.rpuch.micrometer:micrometer-reactor:1.0.0'
+```
+
+### Java config ###
+
+```java
+public ReactorTimedAspect reactorTimedAspect(MeterRegistry meterRegistry) {
+    return new ReactorTimedAspect(meterRegistry);
+}
+
+public ReactorCountedAspect reactorCountedAspect(MeterRegistry meterRegistry) {
+    return new ReactorCountedAspect(meterRegistry);
+}
+```
+
+### Timing ###
+
+```java
+public class MyService {
+    @Timed("loadMyEntity")
+    public Mono<MyEntity> loadMyEntity(long id) {
+        // ... load code
+    }
+}
+
+```
+### Counting ###
+
+```java
+public class MyService {
+    @Counted("loadMyEntity")
+    public Mono<MyEntity> loadMyEntity(long id) {
+        // ... load code
+    }
+}
+```
