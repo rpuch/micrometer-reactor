@@ -14,13 +14,12 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.rpuch.micrometer</groupId>
     <artifactId>micrometer-reactor</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
 
     <properties>
         <java.version>8</java.version>
@@ -214,7 +213,7 @@
         <url>https://github.com/rpuch/micrometer-reactor</url>
         <connection>scm:git:git@github.com:rpuch/micrometer-reactor.git</connection>
         <developerConnection>scm:git:git@github.com:rpuch/micrometer-reactor.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>micrometer-reactor-1.0</tag>
     </scm>
 
     <licenses>
