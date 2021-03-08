@@ -28,10 +28,12 @@ implementation 'com.rpuch.micrometer:micrometer-reactor:1.0.0'
 ### Java config ###
 
 ```java
+@Bean
 public ReactorTimedAspect reactorTimedAspect(MeterRegistry meterRegistry) {
     return new ReactorTimedAspect(meterRegistry);
 }
 
+@Bean
 public ReactorCountedAspect reactorCountedAspect(MeterRegistry meterRegistry) {
     return new ReactorCountedAspect(meterRegistry);
 }
