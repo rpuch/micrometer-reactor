@@ -22,6 +22,9 @@ import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 
 import java.util.Arrays;
 
+/**
+ * @author Roman Puchkovskiy
+ */
 public class AspectWrapping {
     public static <T> T wrapInAspect(T objectToWrap, Object aspect) {
         return wrapInAspects(objectToWrap, aspect);
