@@ -21,6 +21,12 @@
     <artifactId>micrometer-reactor</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
+    <name>micrometer-reactor</name>
+    <description>
+        Reactor Core's Mono and Flux support for Micrometer @Timed and @Counted annotations.
+    </description>
+    <url>https://github.com/rpuch/micrometer-reactor</url>
+
     <properties>
         <java.version>8</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
