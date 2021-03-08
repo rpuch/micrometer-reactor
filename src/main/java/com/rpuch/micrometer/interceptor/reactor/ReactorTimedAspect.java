@@ -21,6 +21,12 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
+ * AspectJ aspect for intercepting {@link Mono} and {@link Flux} methods annotated with {@link Timed @Timed}.
+ *
+ * @author David J. M. Karlsen
+ * @author Jon Schneider
+ * @author Johnny Lim
+ * @author Nejc Korasa
  * @author Roman Puchkovskiy
  */
 @Aspect
