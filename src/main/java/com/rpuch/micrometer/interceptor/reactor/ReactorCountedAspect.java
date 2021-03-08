@@ -46,6 +46,7 @@ public class ReactorCountedAspect {
     public final String DEFAULT_EXCEPTION_TAG_VALUE = "none";
     public final String RESULT_TAG_FAILURE_VALUE = "failure";
     public final String RESULT_TAG_SUCCESS_VALUE = "success";
+    public final String RESULT_TAG_CANCELLATION_VALUE = "cancellation";
 
     /**
      * The tag name to encapsulate the method execution status.
@@ -141,7 +142,8 @@ public class ReactorCountedAspect {
 
         Mono<?> mono = (Mono<?>) invocationResult;
         return mono.doOnSuccess(result -> maybeRecordSuccess(pjp, counted))
-                .doOnError(ex -> recordFailure(pjp, counted, ex));
+                .doOnError(ex -> recordFailure(pjp, counted, ex))
+                .doOnCancel(() -> maybeRecordCancellation(pjp, counted));
     }
 
     private void maybeRecordSuccess(ProceedingJoinPoint pjp, Counted counted) {
@@ -152,6 +154,12 @@ public class ReactorCountedAspect {
 
     private void recordFailure(ProceedingJoinPoint pjp, Counted counted, Throwable ex) {
         record(pjp, counted, ex.getClass().getSimpleName(), RESULT_TAG_FAILURE_VALUE);
+    }
+
+    private void maybeRecordCancellation(ProceedingJoinPoint pjp, Counted counted) {
+        if (!counted.recordFailuresOnly()) {
+            record(pjp, counted, DEFAULT_EXCEPTION_TAG_VALUE, RESULT_TAG_CANCELLATION_VALUE);
+        }
     }
 
     private Flux<?> countOnFlux(ProceedingJoinPoint pjp, Counted counted) {
@@ -172,7 +180,8 @@ public class ReactorCountedAspect {
 
         Flux<?> flux = (Flux<?>) invocationResult;
         return flux.doOnComplete(() -> maybeRecordSuccess(pjp, counted))
-                .doOnError(ex -> recordFailure(pjp, counted, ex));
+                .doOnError(ex -> recordFailure(pjp, counted, ex))
+                .doOnCancel(() -> maybeRecordCancellation(pjp, counted));
     }
 
     private void record(ProceedingJoinPoint pjp, Counted counted, String exception, String result) {

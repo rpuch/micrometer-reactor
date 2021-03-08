@@ -21,6 +21,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.aspectj.lang.annotation.Aspect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -131,6 +132,21 @@ class ReactorCountedAspectTest {
     }
 
     @Test
+    void cancellationIsCountedViaMono() {
+        CancellableSubscriber subscriber = countedServiceProxy.lazyMonoWithSuccess().subscribeWith(new CancellableSubscriber());
+        subscriber.cancel();
+
+        double countedCount = registry.get("lazyMonoWithSuccess")
+                .tag("class", CountedService.class.getName())
+                .tag("method", "lazyMonoWithSuccess")
+                .tag("result", "cancellation")
+                .tag("extra", "tag")
+                .counter().count();
+
+        assertThat(countedCount).isEqualTo(1);
+    }
+
+    @Test
     void invocationEagerExceptionIsCountedViaFlux() {
         assertThatThrownBy(() -> countedServiceProxy.eagerFluxWithException().blockLast())
                 .isEqualTo(exception);
@@ -183,6 +199,21 @@ class ReactorCountedAspectTest {
 
         assertThat(countedCount).isEqualTo(1);
     }
+    
+    @Test
+    void cancellationIsCountedViaFlux() {
+        CancellableSubscriber subscriber = countedServiceProxy.lazyFluxWithSuccess().subscribeWith(new CancellableSubscriber());
+        subscriber.cancel();
+
+        double countedCount = registry.get("lazyFluxWithSuccess")
+                .tag("class", CountedService.class.getName())
+                .tag("method", "lazyFluxWithSuccess")
+                .tag("result", "cancellation")
+                .tag("extra", "tag")
+                .counter().count();
+
+        assertThat(countedCount).isEqualTo(1);
+    }
 
     @Test
     void invocationIsNotCountedViaMonoUntilSubscription() {
@@ -213,6 +244,14 @@ class ReactorCountedAspectTest {
     void exceptionIsPropagatedViaMono_recordOnlyFailures() {
         assertThatThrownBy(() -> countedServiceProxy.lazyMonoWithExceptionRecordOnlyFailures().block())
                 .isEqualTo(exception);
+    }
+
+    @Test
+    void cancellationIsNotCountedViaMono_recordOnlyFailures() {
+        Disposable disposable = countedServiceProxy.lazyMonoWithSuccessRecordOnlyFailures().subscribe();
+        disposable.dispose();
+
+        assertThatNoMeterIsCreated();
     }
 
     @Test
@@ -324,6 +363,14 @@ class ReactorCountedAspectTest {
     @Test
     void invocationIsNotCountedViaFluxUntilSubscription_recordOnlyFailures() {
         countedServiceProxy.lazyFluxWithSuccessRecordOnlyFailures();
+
+        assertThatNoMeterIsCreated();
+    }
+    
+    @Test
+    void cancellationIsNotCountedViaFlux_recordOnlyFailures() {
+        Disposable disposable = countedServiceProxy.lazyFluxWithSuccessRecordOnlyFailures().subscribe();
+        disposable.dispose();
 
         assertThatNoMeterIsCreated();
     }
