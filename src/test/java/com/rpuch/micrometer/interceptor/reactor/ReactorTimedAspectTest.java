@@ -3,6 +3,7 @@ package com.rpuch.micrometer.interceptor.reactor;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import org.aspectj.lang.annotation.Aspect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
@@ -312,6 +313,12 @@ class ReactorTimedAspectTest {
         timedServiceProxy.lazyFluxWithSuccessLong();
 
         assertThatNoMeterIsCreated();
+    }
+
+    @Test
+    void classIsAnnotatedWithAspect() {
+        assertThat(ReactorTimedAspect.class.getAnnotation(Aspect.class))
+                .isNotNull();
     }
 
     public class TimedService {
