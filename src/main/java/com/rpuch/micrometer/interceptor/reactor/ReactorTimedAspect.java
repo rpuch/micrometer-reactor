@@ -183,7 +183,8 @@ public class ReactorTimedAspect {
         record(pjp, timed, metricName, sample, getExceptionTag(throwable));
     }
 
-    private void record(ProceedingJoinPoint pjp, Timed timed, String metricName, Timer.Sample sample, String exceptionClass) {
+    private void record(ProceedingJoinPoint pjp, Timed timed, String metricName, Timer.Sample sample,
+            String exceptionClass) {
         try {
             sample.stop(Timer.builder(metricName)
                     .description(timed.description().isEmpty() ? null : timed.description())
@@ -209,7 +210,8 @@ public class ReactorTimedAspect {
 
     private Mono<?> processMonoWithLongTaskTimer(ProceedingJoinPoint pjp, Timed timed, String metricName) {
         return Mono.defer(() -> {
-            Optional<LongTaskTimer.Sample> sample = buildLongTaskTimer(pjp, timed, metricName).map(LongTaskTimer::start);
+            Optional<LongTaskTimer.Sample> sample = buildLongTaskTimer(pjp, timed, metricName)
+                    .map(LongTaskTimer::start);
 
             Object invocationResult;
             try {
@@ -233,7 +235,8 @@ public class ReactorTimedAspect {
 
     private Flux<?> processFluxWithLongTaskTimer(ProceedingJoinPoint pjp, Timed timed, String metricName) {
         return Flux.defer(() -> {
-            Optional<LongTaskTimer.Sample> sample = buildLongTaskTimer(pjp, timed, metricName).map(LongTaskTimer::start);
+            Optional<LongTaskTimer.Sample> sample = buildLongTaskTimer(pjp, timed, metricName)
+                    .map(LongTaskTimer::start);
 
             Object invocationResult;
             try {
