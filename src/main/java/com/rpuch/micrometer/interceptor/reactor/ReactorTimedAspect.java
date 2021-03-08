@@ -69,7 +69,7 @@ public class ReactorTimedAspect {
     private void timedMethod() {
     }
 
-    @Around("timedMethod() && returnsMono()")
+    @Around("timedMethod() && (returnsMono() || returnsFlux())")
     public Object timedMonoMethod(ProceedingJoinPoint pjp) throws Throwable {
         Method method = ((MethodSignature) pjp.getSignature()).getMethod();
         Timed timed = method.getAnnotation(Timed.class);
@@ -79,29 +79,20 @@ public class ReactorTimedAspect {
         }
 
         final String metricName = timed.value().isEmpty() ? DEFAULT_METRIC_NAME : timed.value();
+        final boolean isMono = Mono.class.isAssignableFrom(method.getReturnType());
 
-        if (!timed.longTask()) {
-            return processMonoWithTimer(pjp, timed, metricName);
+        if (isMono) {
+            if (!timed.longTask()) {
+                return processMonoWithTimer(pjp, timed, metricName);
+            } else {
+                return processMonoWithLongTaskTimer(pjp, timed, metricName);
+            }
         } else {
-            return processMonoWithLongTaskTimer(pjp, timed, metricName);
-        }
-    }
-
-    @Around("timedMethod() && returnsFlux()")
-    public Object timedFluxMethod(ProceedingJoinPoint pjp) throws Throwable {
-        Method method = ((MethodSignature) pjp.getSignature()).getMethod();
-        Timed timed = method.getAnnotation(Timed.class);
-        if (timed == null) {
-            method = pjp.getTarget().getClass().getMethod(method.getName(), method.getParameterTypes());
-            timed = method.getAnnotation(Timed.class);
-        }
-
-        final String metricName = timed.value().isEmpty() ? DEFAULT_METRIC_NAME : timed.value();
-
-        if (!timed.longTask()) {
-            return processFluxWithTimer(pjp, timed, metricName);
-        } else {
-            return processFluxWithLongTaskTimer(pjp, timed, metricName);
+            if (!timed.longTask()) {
+                return processFluxWithTimer(pjp, timed, metricName);
+            } else {
+                return processFluxWithLongTaskTimer(pjp, timed, metricName);
+            }
         }
     }
 
