@@ -2,7 +2,6 @@ package com.rpuch.micrometer.interceptor.reactor;
 
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.search.MeterNotFoundException;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +22,7 @@ class ReactorTimedAspectTest {
     private TimedService timedServiceProxy;
 
     private final RuntimeException exception = new RuntimeException("Oops");
+    private final Error error = new Error("Oops");
 
     @BeforeEach
     void init() {
@@ -43,7 +43,7 @@ class ReactorTimedAspectTest {
 
     @Test
     void exceptionIsPropagatedViaMono() {
-        assertThatThrownBy(() -> timedServiceProxy.lazyMonoWithError().block())
+        assertThatThrownBy(() -> timedServiceProxy.lazyMonoWithException().block())
                 .isEqualTo(exception);
     }
 
@@ -56,7 +56,7 @@ class ReactorTimedAspectTest {
 
     @Test
     void exceptionIsPropagatedViaFlux() {
-        assertThatThrownBy(() -> timedServiceProxy.lazyFluxWithError().blockFirst())
+        assertThatThrownBy(() -> timedServiceProxy.lazyFluxWithException().blockFirst())
                 .isEqualTo(exception);
     }
 
@@ -75,12 +75,12 @@ class ReactorTimedAspectTest {
 
     @Test
     void invocationErrorIsTimedViaMono() {
-        assertThatThrownBy(() -> timedServiceProxy.lazyMonoWithError().block())
+        assertThatThrownBy(() -> timedServiceProxy.lazyMonoWithException().block())
                 .isEqualTo(exception);
 
-        long timedCount = registry.get("lazyMonoWithError")
+        long timedCount = registry.get("lazyMonoWithException")
                 .tag("class", TimedService.class.getName())
-                .tag("method", "lazyMonoWithError")
+                .tag("method", "lazyMonoWithException")
                 .tag("extra", "tag")
                 .tag("exception", "RuntimeException")
                 .timer().count();
@@ -90,12 +90,12 @@ class ReactorTimedAspectTest {
 
     @Test
     void invocationEagerExceptionIsTimedViaMono() {
-        assertThatThrownBy(() -> timedServiceProxy.eagerMonoWithError().block())
+        assertThatThrownBy(() -> timedServiceProxy.eagerMonoWithException().block())
                 .isEqualTo(exception);
 
-        long timedCount = registry.get("eagerMonoWithError")
+        long timedCount = registry.get("eagerMonoWithException")
                 .tag("class", TimedService.class.getName())
-                .tag("method", "eagerMonoWithError")
+                .tag("method", "eagerMonoWithException")
                 .tag("extra", "tag")
                 .tag("exception", "RuntimeException")
                 .timer().count();
@@ -104,18 +104,34 @@ class ReactorTimedAspectTest {
     }
 
     @Test
+    void invocationEagerErrorIsNotTimedViaMono() {
+        assertThatThrownBy(() -> timedServiceProxy.eagerMonoWithError().block())
+                .hasCause(error);
+
+        assertThatNoMeterIsCreated();
+    }
+
+    @Test
     void invocationEagerExceptionIsTimedViaFlux() {
-        assertThatThrownBy(() -> timedServiceProxy.eagerFluxWithError().blockLast())
+        assertThatThrownBy(() -> timedServiceProxy.eagerFluxWithException().blockLast())
                 .isEqualTo(exception);
 
-        long timedCount = registry.get("eagerFluxWithError")
+        long timedCount = registry.get("eagerFluxWithException")
                 .tag("class", TimedService.class.getName())
-                .tag("method", "eagerFluxWithError")
+                .tag("method", "eagerFluxWithException")
                 .tag("extra", "tag")
                 .tag("exception", "RuntimeException")
                 .timer().count();
 
         assertThat(timedCount).isEqualTo(1);
+    }
+    
+    @Test
+    void invocationEagerErrorIsNotTimedViaFlux() {
+        assertThatThrownBy(() -> timedServiceProxy.eagerFluxWithError().blockLast())
+                .hasCause(error);
+
+        assertThatNoMeterIsCreated();
     }
 
     @Test
@@ -133,12 +149,12 @@ class ReactorTimedAspectTest {
 
     @Test
     void invocationErrorIsTimedViaFlux() {
-        assertThatThrownBy(() -> timedServiceProxy.lazyFluxWithError().blockLast())
+        assertThatThrownBy(() -> timedServiceProxy.lazyFluxWithException().blockLast())
                 .isEqualTo(exception);
 
-        long timedCount = registry.get("lazyFluxWithError")
+        long timedCount = registry.get("lazyFluxWithException")
                 .tag("class", TimedService.class.getName())
-                .tag("method", "lazyFluxWithError")
+                .tag("method", "lazyFluxWithException")
                 .tag("extra", "tag")
                 .tag("exception", "RuntimeException")
                 .timer().count();
@@ -150,16 +166,18 @@ class ReactorTimedAspectTest {
     void invocationIsNotTimedViaMonoUntilSubscription() {
         timedServiceProxy.lazyMonoWithSuccess();
 
-        assertThatThrownBy(() -> registry.get("lazyMonoWithSuccess").meter())
-                .isInstanceOf(MeterNotFoundException.class);
+        assertThatNoMeterIsCreated();
+    }
+
+    private void assertThatNoMeterIsCreated() {
+        assertThat(registry.getMeters()).isEmpty();
     }
 
     @Test
     void invocationIsNotTimedViaFluxUntilSubscription() {
         timedServiceProxy.lazyFluxWithSuccess();
 
-        assertThatThrownBy(() -> registry.get("lazyFluxWithSuccess").meter())
-                .isInstanceOf(MeterNotFoundException.class);
+        assertThatNoMeterIsCreated();
     }
 
     @Test
@@ -171,7 +189,7 @@ class ReactorTimedAspectTest {
 
     @Test
     void exceptionIsPropagatedViaMono_longTask() {
-        assertThatThrownBy(() -> timedServiceProxy.lazyMonoWithErrorLong().block())
+        assertThatThrownBy(() -> timedServiceProxy.lazyMonoWithExceptionLong().block())
                 .isEqualTo(exception);
     }
 
@@ -184,7 +202,7 @@ class ReactorTimedAspectTest {
 
     @Test
     void exceptionIsPropagatedViaFlux_longTask() {
-        assertThatThrownBy(() -> timedServiceProxy.lazyFluxWithErrorLong().blockFirst())
+        assertThatThrownBy(() -> timedServiceProxy.lazyFluxWithExceptionLong().blockFirst())
                 .isEqualTo(exception);
     }
 
@@ -203,12 +221,12 @@ class ReactorTimedAspectTest {
 
     @Test
     void invocationErrorIsTimedViaMono_longTask() {
-        assertThatThrownBy(() -> timedServiceProxy.lazyMonoWithErrorLong().block())
+        assertThatThrownBy(() -> timedServiceProxy.lazyMonoWithExceptionLong().block())
                 .isEqualTo(exception);
 
-        long timersCount = registry.get("lazyMonoWithErrorLong")
+        long timersCount = registry.get("lazyMonoWithExceptionLong")
                 .tag("class", TimedService.class.getName())
-                .tag("method", "lazyMonoWithErrorLong")
+                .tag("method", "lazyMonoWithExceptionLong")
                 .tag("extra", "tag")
                 .longTaskTimers().size();
 
@@ -217,16 +235,22 @@ class ReactorTimedAspectTest {
 
     @Test
     void invocationEagerExceptionIsTimedViaMono_longTask() {
-        assertThatThrownBy(() -> timedServiceProxy.eagerMonoWithErrorLong().block())
+        assertThatThrownBy(() -> timedServiceProxy.eagerMonoWithExceptionLong().block())
                 .isEqualTo(exception);
 
-        long timersCount = registry.get("eagerMonoWithErrorLong")
+        long timersCount = registry.get("eagerMonoWithExceptionLong")
                 .tag("class", TimedService.class.getName())
-                .tag("method", "eagerMonoWithErrorLong")
+                .tag("method", "eagerMonoWithExceptionLong")
                 .tag("extra", "tag")
                 .longTaskTimers().size();
 
         assertThat(timersCount).isEqualTo(1);
+    }
+
+    @Test
+    void invocationEagerErrorIsPassedViaMono_longTask() {
+        assertThatThrownBy(() -> timedServiceProxy.eagerMonoWithErrorLong().block())
+                .hasCause(error);
     }
 
     @Test
@@ -244,12 +268,12 @@ class ReactorTimedAspectTest {
     
     @Test
     void invocationErrorIsTimedViaFlux_longTask() {
-        assertThatThrownBy(() -> timedServiceProxy.lazyFluxWithErrorLong().blockLast())
+        assertThatThrownBy(() -> timedServiceProxy.lazyFluxWithExceptionLong().blockLast())
                 .isEqualTo(exception);
 
-        long timersCount = registry.get("lazyFluxWithErrorLong")
+        long timersCount = registry.get("lazyFluxWithExceptionLong")
                 .tag("class", TimedService.class.getName())
-                .tag("method", "lazyFluxWithErrorLong")
+                .tag("method", "lazyFluxWithExceptionLong")
                 .tag("extra", "tag")
                 .longTaskTimers().size();
 
@@ -258,32 +282,36 @@ class ReactorTimedAspectTest {
     
     @Test
     void invocationEagerExceptionIsTimedViaFlux_longTask() {
-        assertThatThrownBy(() -> timedServiceProxy.eagerFluxWithErrorLong().blockLast())
+        assertThatThrownBy(() -> timedServiceProxy.eagerFluxWithExceptionLong().blockLast())
                 .isEqualTo(exception);
 
-        long timersCount = registry.get("eagerFluxWithErrorLong")
+        long timersCount = registry.get("eagerFluxWithExceptionLong")
                 .tag("class", TimedService.class.getName())
-                .tag("method", "eagerFluxWithErrorLong")
+                .tag("method", "eagerFluxWithExceptionLong")
                 .tag("extra", "tag")
                 .longTaskTimers().size();
 
         assertThat(timersCount).isEqualTo(1);
+    }
+    
+    @Test
+    void invocationEagerErrorIsPassedViaFlux_longTask() {
+        assertThatThrownBy(() -> timedServiceProxy.eagerFluxWithErrorLong().blockLast())
+                .hasCause(error);
     }
 
     @Test
     void invocationIsNotTimedViaMonoUntilSubscription_longTask() {
         timedServiceProxy.lazyMonoWithSuccessLong();
 
-        assertThatThrownBy(() -> registry.get("lazyMonoWithSuccessLong").meter())
-                .isInstanceOf(MeterNotFoundException.class);
+        assertThatNoMeterIsCreated();
     }
 
     @Test
     void invocationIsNotTimedViaFluxUntilSubscription_longTask() {
         timedServiceProxy.lazyFluxWithSuccessLong();
 
-        assertThatThrownBy(() -> registry.get("lazyFluxWithSuccessLong").meter())
-                .isInstanceOf(MeterNotFoundException.class);
+        assertThatNoMeterIsCreated();
     }
 
     public class TimedService {
@@ -292,14 +320,19 @@ class ReactorTimedAspectTest {
             return Mono.fromCallable(() -> "ok");
         }
 
-        @Timed(value = "lazyMonoWithError", extraTags = {"extra", "tag"})
-        public Mono<String> lazyMonoWithError() {
+        @Timed(value = "lazyMonoWithException", extraTags = {"extra", "tag"})
+        public Mono<String> lazyMonoWithException() {
             return Mono.defer(() -> Mono.error(exception));
+        }
+
+        @Timed(value = "eagerMonoWithException", extraTags = {"extra", "tag"})
+        public Mono<String> eagerMonoWithException() {
+            throw exception;
         }
 
         @Timed(value = "eagerMonoWithError", extraTags = {"extra", "tag"})
         public Mono<String> eagerMonoWithError() {
-            throw exception;
+            throw error;
         }
 
         @Timed(value = "lazyFluxWithSuccess", extraTags = {"extra", "tag"})
@@ -307,14 +340,19 @@ class ReactorTimedAspectTest {
             return Flux.defer(() -> Flux.just("ok"));
         }
 
-        @Timed(value = "lazyFluxWithError", extraTags = {"extra", "tag"})
-        public Flux<String> lazyFluxWithError() {
+        @Timed(value = "lazyFluxWithException", extraTags = {"extra", "tag"})
+        public Flux<String> lazyFluxWithException() {
             return Flux.defer(() -> Flux.error(exception));
+        }
+
+        @Timed(value = "eagerFluxWithException", extraTags = {"extra", "tag"})
+        public Flux<String> eagerFluxWithException() {
+            throw exception;
         }
 
         @Timed(value = "eagerFluxWithError", extraTags = {"extra", "tag"})
         public Flux<String> eagerFluxWithError() {
-            throw exception;
+            throw error;
         }
 
         @Timed(value = "lazyMonoWithSuccessLong", longTask = true, extraTags = {"extra", "tag"})
@@ -322,14 +360,19 @@ class ReactorTimedAspectTest {
             return Mono.fromCallable(() -> "ok");
         }
 
-        @Timed(value = "lazyMonoWithErrorLong", longTask = true, extraTags = {"extra", "tag"})
-        public Mono<String> lazyMonoWithErrorLong() {
+        @Timed(value = "lazyMonoWithExceptionLong", longTask = true, extraTags = {"extra", "tag"})
+        public Mono<String> lazyMonoWithExceptionLong() {
             return Mono.defer(() -> Mono.error(exception));
+        }
+
+        @Timed(value = "eagerMonoWithExceptionLong", longTask = true, extraTags = {"extra", "tag"})
+        public Mono<String> eagerMonoWithExceptionLong() {
+            throw exception;
         }
 
         @Timed(value = "eagerMonoWithErrorLong", longTask = true, extraTags = {"extra", "tag"})
         public Mono<String> eagerMonoWithErrorLong() {
-            throw exception;
+            throw error;
         }
 
         @Timed(value = "lazyFluxWithSuccessLong", longTask = true, extraTags = {"extra", "tag"})
@@ -337,14 +380,19 @@ class ReactorTimedAspectTest {
             return Flux.defer(() -> Flux.just("ok"));
         }
 
-        @Timed(value = "lazyFluxWithErrorLong", longTask = true, extraTags = {"extra", "tag"})
-        public Flux<String> lazyFluxWithErrorLong() {
+        @Timed(value = "lazyFluxWithExceptionLong", longTask = true, extraTags = {"extra", "tag"})
+        public Flux<String> lazyFluxWithExceptionLong() {
             return Flux.defer(() -> Flux.error(exception));
         }
         
+        @Timed(value = "eagerFluxWithExceptionLong", longTask = true, extraTags = {"extra", "tag"})
+        public Flux<String> eagerFluxWithExceptionLong() {
+            throw exception;
+        }
+
         @Timed(value = "eagerFluxWithErrorLong", longTask = true, extraTags = {"extra", "tag"})
         public Flux<String> eagerFluxWithErrorLong() {
-            throw exception;
+            throw error;
         }
     }
 }
