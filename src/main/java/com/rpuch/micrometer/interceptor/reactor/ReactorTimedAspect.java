@@ -114,7 +114,7 @@ public class ReactorTimedAspect {
                     return mono.doOnSuccess(result -> record(pjp, timed, metricName, sample, DEFAULT_EXCEPTION_TAG_VALUE))
                             .doOnError(throwable -> record(pjp, timed, metricName, sample, getExceptionTag(throwable)));
                 } else {
-                    throw new IllegalStateException("Only Mono is supported, shoult not be here, got "
+                    throw new IllegalStateException("Only Mono is supported, should not be here, got "
                             + invocationResult);
                 }
             } catch (Error e) {
@@ -138,7 +138,7 @@ public class ReactorTimedAspect {
                     return flux.doOnComplete(() -> record(pjp, timed, metricName, sample, DEFAULT_EXCEPTION_TAG_VALUE))
                             .doOnError(throwable -> record(pjp, timed, metricName, sample, getExceptionTag(throwable)));
                 } else {
-                    throw new IllegalStateException("Only Flux is supported, shoult not be here, got "
+                    throw new IllegalStateException("Only Flux is supported, should not be here, got "
                             + invocationResult);
                 }
             } catch (Error e) {
@@ -167,10 +167,6 @@ public class ReactorTimedAspect {
 
     private String getExceptionTag(Throwable throwable) {
 
-        if (throwable == null) {
-            return DEFAULT_EXCEPTION_TAG_VALUE;
-        }
-
         if (throwable.getCause() == null) {
             return throwable.getClass().getSimpleName();
         }
@@ -189,7 +185,7 @@ public class ReactorTimedAspect {
                     Mono<?> mono = (Mono<?>) invocationResult;
                     return mono.doFinally(signalType -> sample.ifPresent(this::stopTimer));
                 } else {
-                    throw new IllegalStateException("Only Mono is supported, shoult not be here, got "
+                    throw new IllegalStateException("Only Mono is supported, should not be here, got "
                             + invocationResult);
                 }
             } catch (Error e) {
@@ -212,7 +208,7 @@ public class ReactorTimedAspect {
                     Flux<?> flux = (Flux<?>) invocationResult;
                     return flux.doFinally(signalType -> sample.ifPresent(this::stopTimer));
                 } else {
-                    throw new IllegalStateException("Only Mono is supported, shoult not be here, got "
+                    throw new IllegalStateException("Only Mono is supported, should not be here, got "
                             + invocationResult);
                 }
             } catch (Error e) {
