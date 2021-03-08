@@ -36,6 +36,11 @@ class ReactorTimedAspectTest {
     }
 
     @Test
+    void hasDefaultConstructor() {
+        new ReactorTimedAspect();
+    }
+
+    @Test
     void valueIsReturnedViaMono() {
         String result = timedServiceProxy.lazyMonoWithSuccess().block();
 
