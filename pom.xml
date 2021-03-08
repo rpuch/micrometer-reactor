@@ -210,6 +210,13 @@
         </repository>
     </distributionManagement>
 
+    <scm>
+        <url>https://github.com/rpuch/micrometer-reactor</url>
+        <connection>scm:git:git@github.com:rpuch/micrometer-reactor.git</connection>
+        <developerConnection>scm:git:git@github.com:rpuch/micrometer-reactor.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
     <licenses>
         <license>
             <name>The Apache License, Version 2.0</name>
