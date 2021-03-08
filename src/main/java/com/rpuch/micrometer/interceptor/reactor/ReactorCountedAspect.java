@@ -26,7 +26,6 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
-import reactor.core.CorePublisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -155,7 +154,7 @@ public class ReactorCountedAspect {
         record(pjp, counted, ex.getClass().getSimpleName(), RESULT_TAG_FAILURE_VALUE);
     }
 
-    private CorePublisher<?> countOnFlux(ProceedingJoinPoint pjp, Counted counted) {
+    private Flux<?> countOnFlux(ProceedingJoinPoint pjp, Counted counted) {
         Object invocationResult;
         try {
             invocationResult = pjp.proceed();
@@ -163,11 +162,11 @@ public class ReactorCountedAspect {
             throw e;
         } catch (Throwable ex) {
             recordFailure(pjp, counted, ex);
-            return Mono.error(ex);
+            return Flux.error(ex);
         }
 
         if (!(invocationResult instanceof Flux)) {
-            return Mono.error(new IllegalStateException(
+            return Flux.error(new IllegalStateException(
                     "Only Flux is supported, should not be here, got " + invocationResult));
         }
 

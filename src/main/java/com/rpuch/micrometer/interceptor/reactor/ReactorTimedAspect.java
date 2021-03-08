@@ -117,51 +117,53 @@ public class ReactorTimedAspect {
         }
     }
 
-    private Object processMonoWithTimer(ProceedingJoinPoint pjp, Timed timed, String metricName) {
+    private Mono<?> processMonoWithTimer(ProceedingJoinPoint pjp, Timed timed, String metricName) {
         return Mono.defer(() -> {
             Timer.Sample sample = Timer.start(registry);
 
+            Object invocationResult;
             try {
-                Object invocationResult = pjp.proceed();
-
-                if (invocationResult instanceof Mono) {
-                    Mono<?> mono = (Mono<?>) invocationResult;
-                    return mono.doOnSuccess(result -> record(pjp, timed, metricName, sample, DEFAULT_EXCEPTION_TAG_VALUE))
-                            .doOnError(throwable -> record(pjp, timed, metricName, sample, getExceptionTag(throwable)));
-                } else {
-                    throw new IllegalStateException("Only Mono is supported, should not be here, got "
-                            + invocationResult);
-                }
+                invocationResult = pjp.proceed();
             } catch (Error e) {
                 throw e;
             } catch (Throwable ex) {
                 record(pjp, timed, metricName, sample, ex.getClass().getSimpleName());
                 return Mono.error(ex);
             }
+
+            if (!(invocationResult instanceof Mono)) {
+                return Mono.error(new IllegalStateException(
+                        "Only Mono is supported, should not be here, got " + invocationResult));
+            }
+
+            Mono<?> mono = (Mono<?>) invocationResult;
+            return mono.doOnSuccess(result -> record(pjp, timed, metricName, sample, DEFAULT_EXCEPTION_TAG_VALUE))
+                    .doOnError(throwable -> record(pjp, timed, metricName, sample, getExceptionTag(throwable)));
         });
     }
 
-    private Object processFluxWithTimer(ProceedingJoinPoint pjp, Timed timed, String metricName) {
+    private Flux<?> processFluxWithTimer(ProceedingJoinPoint pjp, Timed timed, String metricName) {
         return Flux.defer(() -> {
             Timer.Sample sample = Timer.start(registry);
 
+            Object invocationResult;
             try {
-                Object invocationResult = pjp.proceed();
-
-                if (invocationResult instanceof Flux) {
-                    Flux<?> flux = (Flux<?>) invocationResult;
-                    return flux.doOnComplete(() -> record(pjp, timed, metricName, sample, DEFAULT_EXCEPTION_TAG_VALUE))
-                            .doOnError(throwable -> record(pjp, timed, metricName, sample, getExceptionTag(throwable)));
-                } else {
-                    throw new IllegalStateException("Only Flux is supported, should not be here, got "
-                            + invocationResult);
-                }
+                invocationResult = pjp.proceed();
             } catch (Error e) {
                 throw e;
             } catch (Throwable ex) {
                 record(pjp, timed, metricName, sample, ex.getClass().getSimpleName());
                 return Mono.error(ex);
             }
+
+            if (!(invocationResult instanceof Flux)) {
+                return Flux.error(new IllegalStateException(
+                        "Only Flux is supported, should not be here, got " + invocationResult));
+            }
+
+            Flux<?> flux = (Flux<?>) invocationResult;
+            return flux.doOnComplete(() -> record(pjp, timed, metricName, sample, DEFAULT_EXCEPTION_TAG_VALUE))
+                    .doOnError(throwable -> record(pjp, timed, metricName, sample, getExceptionTag(throwable)));
         });
     }
 
@@ -189,49 +191,51 @@ public class ReactorTimedAspect {
         return throwable.getCause().getClass().getSimpleName();
     }
 
-    private Object processMonoWithLongTaskTimer(ProceedingJoinPoint pjp, Timed timed, String metricName) {
+    private Mono<?> processMonoWithLongTaskTimer(ProceedingJoinPoint pjp, Timed timed, String metricName) {
         return Mono.defer(() -> {
             Optional<LongTaskTimer.Sample> sample = buildLongTaskTimer(pjp, timed, metricName).map(LongTaskTimer::start);
 
+            Object invocationResult;
             try {
-                Object invocationResult = pjp.proceed();
-
-                if (invocationResult instanceof Mono) {
-                    Mono<?> mono = (Mono<?>) invocationResult;
-                    return mono.doFinally(signalType -> sample.ifPresent(this::stopTimer));
-                } else {
-                    throw new IllegalStateException("Only Mono is supported, should not be here, got "
-                            + invocationResult);
-                }
+                invocationResult = pjp.proceed();
             } catch (Error e) {
                 throw e;
             } catch (Throwable ex) {
                 sample.ifPresent(this::stopTimer);
                 return Mono.error(ex);
             }
+
+            if (!(invocationResult instanceof Mono)) {
+                return Mono.error(new IllegalStateException(
+                        "Only Mono is supported, should not be here, got " + invocationResult));
+            }
+
+            Mono<?> mono = (Mono<?>) invocationResult;
+            return mono.doFinally(signalType -> sample.ifPresent(this::stopTimer));
         });
     }
 
-    private Object processFluxWithLongTaskTimer(ProceedingJoinPoint pjp, Timed timed, String metricName) {
+    private Flux<?> processFluxWithLongTaskTimer(ProceedingJoinPoint pjp, Timed timed, String metricName) {
         return Flux.defer(() -> {
             Optional<LongTaskTimer.Sample> sample = buildLongTaskTimer(pjp, timed, metricName).map(LongTaskTimer::start);
 
+            Object invocationResult;
             try {
-                Object invocationResult = pjp.proceed();
-
-                if (invocationResult instanceof Flux) {
-                    Flux<?> flux = (Flux<?>) invocationResult;
-                    return flux.doFinally(signalType -> sample.ifPresent(this::stopTimer));
-                } else {
-                    throw new IllegalStateException("Only Mono is supported, should not be here, got "
-                            + invocationResult);
-                }
+                invocationResult = pjp.proceed();
             } catch (Error e) {
                 throw e;
             } catch (Throwable ex) {
                 sample.ifPresent(this::stopTimer);
                 return Mono.error(ex);
             }
+
+            if (!(invocationResult instanceof Flux)) {
+                return Flux.error(new IllegalStateException(
+                        "Only Flux is supported, should not be here, got " + invocationResult));
+            }
+
+            Flux<?> flux = (Flux<?>) invocationResult;
+            return flux.doFinally(signalType -> sample.ifPresent(this::stopTimer));
         });
     }
 
