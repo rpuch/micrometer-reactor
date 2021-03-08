@@ -133,6 +133,22 @@ class ReactorTimedAspectTest {
     }
 
     @Test
+    void cancellationIsTimedViaMono() {
+        CancellableSubscriber subscriber = timedServiceProxy.lazyMonoWithSuccess()
+                .subscribeWith(new CancellableSubscriber());
+        subscriber.cancel();
+
+        long timedCount = registry.get("lazyMonoWithSuccess")
+                .tag("class", TimedService.class.getName())
+                .tag("method", "lazyMonoWithSuccess")
+                .tag("exception", "cancellation")
+                .tag("extra", "tag")
+                .timer().count();
+
+        assertThat(timedCount).isEqualTo(1);
+    }
+
+    @Test
     void invocationEagerExceptionIsTimedViaFlux() {
         assertThatThrownBy(() -> timedServiceProxy.eagerFluxWithException().blockLast())
                 .isEqualTo(exception);
@@ -178,6 +194,22 @@ class ReactorTimedAspectTest {
                 .tag("method", "lazyFluxWithException")
                 .tag("extra", "tag")
                 .tag("exception", "RuntimeException")
+                .timer().count();
+
+        assertThat(timedCount).isEqualTo(1);
+    }
+    
+    @Test
+    void cancellationIsTimedViaFlux() {
+        CancellableSubscriber subscriber = timedServiceProxy.lazyFluxWithSuccess()
+                .subscribeWith(new CancellableSubscriber());
+        subscriber.cancel();
+
+        long timedCount = registry.get("lazyFluxWithSuccess")
+                .tag("class", TimedService.class.getName())
+                .tag("method", "lazyFluxWithSuccess")
+                .tag("exception", "cancellation")
+                .tag("extra", "tag")
                 .timer().count();
 
         assertThat(timedCount).isEqualTo(1);

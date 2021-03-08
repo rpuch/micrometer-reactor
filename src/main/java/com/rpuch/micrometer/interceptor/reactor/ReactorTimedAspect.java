@@ -49,6 +49,7 @@ import java.util.function.Function;
 public class ReactorTimedAspect {
     public static final String DEFAULT_METRIC_NAME = "method.timed";
     public static final String DEFAULT_EXCEPTION_TAG_VALUE = "none";
+    public static final String CANCELLATION_EXCEPTION_TAG_VALUE = "cancellation";
 
     /**
      * Tag key for an exception.
@@ -137,9 +138,18 @@ public class ReactorTimedAspect {
             }
 
             Mono<?> mono = (Mono<?>) invocationResult;
-            return mono.doOnSuccess(result -> record(pjp, timed, metricName, sample, DEFAULT_EXCEPTION_TAG_VALUE))
-                    .doOnError(throwable -> record(pjp, timed, metricName, sample, getExceptionTag(throwable)));
+            return mono.doOnSuccess(result -> recordSuccess(pjp, timed, metricName, sample))
+                    .doOnError(throwable -> recordFailure(pjp, timed, metricName, sample, throwable))
+                    .doOnCancel(() -> recordCancallation(pjp, timed, metricName, sample));
         });
+    }
+
+    private void recordSuccess(ProceedingJoinPoint pjp, Timed timed, String metricName, Timer.Sample sample) {
+        record(pjp, timed, metricName, sample, DEFAULT_EXCEPTION_TAG_VALUE);
+    }
+
+    private void recordCancallation(ProceedingJoinPoint pjp, Timed timed, String metricName, Timer.Sample sample) {
+        record(pjp, timed, metricName, sample, CANCELLATION_EXCEPTION_TAG_VALUE);
     }
 
     private Flux<?> processFluxWithTimer(ProceedingJoinPoint pjp, Timed timed, String metricName) {
@@ -162,9 +172,15 @@ public class ReactorTimedAspect {
             }
 
             Flux<?> flux = (Flux<?>) invocationResult;
-            return flux.doOnComplete(() -> record(pjp, timed, metricName, sample, DEFAULT_EXCEPTION_TAG_VALUE))
-                    .doOnError(throwable -> record(pjp, timed, metricName, sample, getExceptionTag(throwable)));
+            return flux.doOnComplete(() -> recordSuccess(pjp, timed, metricName, sample))
+                    .doOnError(throwable -> recordFailure(pjp, timed, metricName, sample, throwable))
+                    .doOnCancel(() -> recordCancallation(pjp, timed, metricName, sample));
         });
+    }
+
+    private void recordFailure(ProceedingJoinPoint pjp, Timed timed, String metricName, Timer.Sample sample,
+            Throwable throwable) {
+        record(pjp, timed, metricName, sample, getExceptionTag(throwable));
     }
 
     private void record(ProceedingJoinPoint pjp, Timed timed, String metricName, Timer.Sample sample, String exceptionClass) {
