@@ -15,6 +15,7 @@
  */
 package com.rpuch.micrometer.reactor.aop;
 
+import io.micrometer.core.annotation.Counted;
 import io.micrometer.core.annotation.Timed;
 
 /**
@@ -22,6 +23,7 @@ import io.micrometer.core.annotation.Timed;
  */
 public class NonReactiveService {
     @Timed("call")
+    @Counted("call")
     public String call() {
         return "ok";
     }

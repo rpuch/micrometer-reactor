@@ -15,15 +15,12 @@
  */
 package com.rpuch.micrometer.reactor.aop;
 
-import io.micrometer.core.annotation.Counted;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.aspectj.lang.annotation.Aspect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.Disposable;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -44,7 +41,7 @@ class ReactorCountedAspectTest {
     @BeforeEach
     void init() {
         aspect = new ReactorCountedAspect(registry);
-        countedServiceProxy = wrapWithAspect(new CountedService());
+        countedServiceProxy = wrapWithAspect(new CountedService(exception, error));
     }
 
     private <T> T wrapWithAspect(T proxiedObject) {
@@ -383,93 +380,4 @@ class ReactorCountedAspectTest {
                 .isNotNull();
     }
 
-    public class CountedService {
-        @Counted(value = "lazyMonoWithSuccess", extraTags = {"extra", "tag"})
-        public Mono<String> lazyMonoWithSuccess() {
-            return Mono.fromCallable(() -> "ok");
-        }
-
-        @Counted(value = "lazyMonoWithException", extraTags = {"extra", "tag"})
-        public Mono<String> lazyMonoWithException() {
-            return Mono.defer(() -> Mono.error(exception));
-        }
-
-        @Counted(value = "eagerMonoWithException", extraTags = {"extra", "tag"})
-        public Mono<String> eagerMonoWithException() {
-            throw exception;
-        }
-
-        @Counted(value = "eagerMonoWithError", extraTags = {"extra", "tag"})
-        public Mono<String> eagerMonoWithError() {
-            throw error;
-        }
-
-        @Counted(value = "lazyFluxWithSuccess", extraTags = {"extra", "tag"})
-        public Flux<String> lazyFluxWithSuccess() {
-            return Flux.defer(() -> Flux.just("ok"));
-        }
-
-        @Counted(value = "lazyFluxWithException", extraTags = {"extra", "tag"})
-        public Flux<String> lazyFluxWithException() {
-            return Flux.defer(() -> Flux.error(exception));
-        }
-
-        @Counted(value = "eagerFluxWithException", extraTags = {"extra", "tag"})
-        public Flux<String> eagerFluxWithException() {
-            throw exception;
-        }
-
-        @Counted(value = "eagerFluxWithError", extraTags = {"extra", "tag"})
-        public Flux<String> eagerFluxWithError() {
-            throw error;
-        }
-
-        @Counted(value = "lazyMonoWithSuccessRecordOnlyFailures", recordFailuresOnly = true,
-                extraTags = {"extra", "tag"})
-        public Mono<String> lazyMonoWithSuccessRecordOnlyFailures() {
-            return Mono.fromCallable(() -> "ok");
-        }
-
-        @Counted(value = "lazyMonoWithExceptionRecordOnlyFailures", recordFailuresOnly = true,
-                extraTags = {"extra", "tag"})
-        public Mono<String> lazyMonoWithExceptionRecordOnlyFailures() {
-            return Mono.defer(() -> Mono.error(exception));
-        }
-
-        @Counted(value = "eagerMonoWithExceptionRecordOnlyFailures", recordFailuresOnly = true,
-                extraTags = {"extra", "tag"})
-        public Mono<String> eagerMonoWithExceptionRecordOnlyFailures() {
-            throw exception;
-        }
-
-        @Counted(value = "eagerMonoWithErrorRecordOnlyFailures", recordFailuresOnly = true,
-                extraTags = {"extra", "tag"})
-        public Mono<String> eagerMonoWithErrorRecordOnlyFailures() {
-            throw error;
-        }
-
-        @Counted(value = "lazyFluxWithSuccessRecordOnlyFailures", recordFailuresOnly = true,
-                extraTags = {"extra", "tag"})
-        public Flux<String> lazyFluxWithSuccessRecordOnlyFailures() {
-            return Flux.defer(() -> Flux.just("ok"));
-        }
-
-        @Counted(value = "lazyFluxWithExceptionRecordOnlyFailures", recordFailuresOnly = true,
-                extraTags = {"extra", "tag"})
-        public Flux<String> lazyFluxWithExceptionRecordOnlyFailures() {
-            return Flux.defer(() -> Flux.error(exception));
-        }
-        
-        @Counted(value = "eagerFluxWithExceptionRecordOnlyFailures", recordFailuresOnly = true,
-                extraTags = {"extra", "tag"})
-        public Flux<String> eagerFluxWithExceptionRecordOnlyFailures() {
-            throw exception;
-        }
-
-        @Counted(value = "eagerFluxWithErrorRecordOnlyFailures", recordFailuresOnly = true,
-                extraTags = {"extra", "tag"})
-        public Flux<String> eagerFluxWithErrorRecordOnlyFailures() {
-            throw error;
-        }
-    }
 }
