@@ -4,8 +4,8 @@
 
 # micrometer-reactor #
 
-[Reactor Core](https://github.com/reactor/reactor-core)'s `Mono` and `Flux` support for
-[Micrometer](https://github.com/micrometer-metrics/micrometer) `@Timed` and `@Counted` annotations.
+Support for collecting metrics on [Reactor Core](https://github.com/reactor/reactor-core)'s `Mono` and `Flux` methods
+with [Micrometer](https://github.com/micrometer-metrics/micrometer) `@Timed` and `@Counted` annotations.
 
 ## How to use ##
 
