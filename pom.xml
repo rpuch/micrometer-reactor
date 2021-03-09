@@ -19,7 +19,7 @@
 
     <groupId>com.rpuch.micrometer</groupId>
     <artifactId>micrometer-reactor</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2-SNAPSHOT</version>
 
     <name>micrometer-reactor</name>
     <description>
@@ -219,7 +219,7 @@
         <url>https://github.com/rpuch/micrometer-reactor</url>
         <connection>scm:git:git@github.com:rpuch/micrometer-reactor.git</connection>
         <developerConnection>scm:git:git@github.com:rpuch/micrometer-reactor.git</developerConnection>
-        <tag>micrometer-reactor-1.0.1</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <licenses>
