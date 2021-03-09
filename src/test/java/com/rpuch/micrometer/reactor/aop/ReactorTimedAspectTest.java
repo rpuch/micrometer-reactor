@@ -15,14 +15,11 @@
  */
 package com.rpuch.micrometer.reactor.aop;
 
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.aspectj.lang.annotation.Aspect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -43,7 +40,7 @@ class ReactorTimedAspectTest {
     @BeforeEach
     void init() {
         aspect = new ReactorTimedAspect(registry);
-        timedServiceProxy = wrapWithAspect(new TimedService());
+        timedServiceProxy = wrapWithAspect(new TimedService(exception, error));
     }
 
     private <T> T wrapWithAspect(T proxiedObject) {
@@ -401,87 +398,5 @@ class ReactorTimedAspectTest {
     void classIsAnnotatedWithAspect() {
         assertThat(ReactorTimedAspect.class.getAnnotation(Aspect.class))
                 .isNotNull();
-    }
-
-    public class TimedService {
-        @Timed(value = "lazyMonoWithSuccess", extraTags = {"extra", "tag"})
-        public Mono<String> lazyMonoWithSuccess() {
-            return Mono.fromCallable(() -> "ok");
-        }
-
-        @Timed(value = "lazyMonoWithException", extraTags = {"extra", "tag"})
-        public Mono<String> lazyMonoWithException() {
-            return Mono.defer(() -> Mono.error(exception));
-        }
-
-        @Timed(value = "eagerMonoWithException", extraTags = {"extra", "tag"})
-        public Mono<String> eagerMonoWithException() {
-            throw exception;
-        }
-
-        @Timed(value = "eagerMonoWithError", extraTags = {"extra", "tag"})
-        public Mono<String> eagerMonoWithError() {
-            throw error;
-        }
-
-        @Timed(value = "lazyFluxWithSuccess", extraTags = {"extra", "tag"})
-        public Flux<String> lazyFluxWithSuccess() {
-            return Flux.defer(() -> Flux.just("ok"));
-        }
-
-        @Timed(value = "lazyFluxWithException", extraTags = {"extra", "tag"})
-        public Flux<String> lazyFluxWithException() {
-            return Flux.defer(() -> Flux.error(exception));
-        }
-
-        @Timed(value = "eagerFluxWithException", extraTags = {"extra", "tag"})
-        public Flux<String> eagerFluxWithException() {
-            throw exception;
-        }
-
-        @Timed(value = "eagerFluxWithError", extraTags = {"extra", "tag"})
-        public Flux<String> eagerFluxWithError() {
-            throw error;
-        }
-
-        @Timed(value = "lazyMonoWithSuccessLong", longTask = true, extraTags = {"extra", "tag"})
-        public Mono<String> lazyMonoWithSuccessLong() {
-            return Mono.fromCallable(() -> "ok");
-        }
-
-        @Timed(value = "lazyMonoWithExceptionLong", longTask = true, extraTags = {"extra", "tag"})
-        public Mono<String> lazyMonoWithExceptionLong() {
-            return Mono.defer(() -> Mono.error(exception));
-        }
-
-        @Timed(value = "eagerMonoWithExceptionLong", longTask = true, extraTags = {"extra", "tag"})
-        public Mono<String> eagerMonoWithExceptionLong() {
-            throw exception;
-        }
-
-        @Timed(value = "eagerMonoWithErrorLong", longTask = true, extraTags = {"extra", "tag"})
-        public Mono<String> eagerMonoWithErrorLong() {
-            throw error;
-        }
-
-        @Timed(value = "lazyFluxWithSuccessLong", longTask = true, extraTags = {"extra", "tag"})
-        public Flux<String> lazyFluxWithSuccessLong() {
-            return Flux.defer(() -> Flux.just("ok"));
-        }
-
-        @Timed(value = "lazyFluxWithExceptionLong", longTask = true, extraTags = {"extra", "tag"})
-        public Flux<String> lazyFluxWithExceptionLong() {
-            return Flux.defer(() -> Flux.error(exception));
-        }
-        
-        @Timed(value = "eagerFluxWithExceptionLong", longTask = true, extraTags = {"extra", "tag"})
-        public Flux<String> eagerFluxWithExceptionLong() {
-            throw exception;
-        }
-
-        @Timed(value = "eagerFluxWithErrorLong", longTask = true, extraTags = {"extra", "tag"})
-        public Flux<String> eagerFluxWithErrorLong() {
-            throw error;
-        }
     }
 }
