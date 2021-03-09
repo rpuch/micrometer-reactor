@@ -29,14 +29,14 @@ Enter `micrometer-reactor`!
 <dependency>
   <groupId>com.rpuch.micrometer</groupId>
   <artifactId>micrometer-reactor</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 </dependency>
 ```
 
 ### Gradle ###
 
 ```
-implementation 'com.rpuch.micrometer:micrometer-reactor:1.0.0'
+implementation 'com.rpuch.micrometer:micrometer-reactor:1.0.1'
 ```
 
 ### Java config ###
