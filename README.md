@@ -1,5 +1,5 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.rpuch.micrometer/micrometer-reactor.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.rpuch.micrometer%22%20AND%20a:%22micrometer-reactor%22)
-[![Build Status](https://travis-ci.com/rpuch/micrometer-reactor.svg?branch=master)](https://travis-ci.com/rpuch/micrometer-reactor)
+[![build](https://github.com/rpuch/micrometer-reactor/actions/workflows/maven.yml/badge.svg)](https://github.com/rpuch/micrometer-reactor/actions/workflows/maven.yml)
 [![codecov](https://codecov.io/gh/rpuch/micrometer-reactor/branch/master/graph/badge.svg?token=PGLWPN3N61)](https://codecov.io/gh/rpuch/micrometer-reactor)
 
 # micrometer-reactor #
